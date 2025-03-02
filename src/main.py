@@ -59,15 +59,26 @@ def update_customer(customer_id: UUID, customer: Customer):
     return {"message": "Customer updated"}
 
 @app.patch("/api/v1/customers/{customer_id}")
-def patch_customer(customer_id: UUID, status_code=200):
-    conn = db_connect()
-    cursor = conn.cursor(dictionary=True)
+def patch_customer(customer_id: UUID, customer: Customer):
     try:
-        cursor.execute("SELECT * FROM customers")
-        customers = cursor.fetchall()
+        if not get_customer(customer_id):
+            raise HTTPException(status_code=404, detail="Customer not found")
+        
+        conn = db_connect()
+        cursor = conn.cursor(dictionary=True)
+        # cursor.execute("UPDATE customers SET first_name = %s, middle_name = %s, last_name = %s, email = %s, phone = %s WHERE id = %s", (customer.first_name, customer.middle_name, customer.last_name, customer.email, customer.phone, str(customer_id)))
+        sql = "UPDATE customers SET "
+        fields = []
+        for key, value in customer.dict().items():
+            fields.append(f"{key} = '{value}'")
+        sql += ", ".join(fields)
+        sql += f" WHERE id = '{str(customer_id)}'"
+        cursor.execute(sql)
+        
+        conn.commit()
     except Exception as e:
         return {"error": str(e)}
-    return customers
+    return {"message": "Customer updated"}
 
 @app.delete("/api/v1/customers/{customer_id}")
 def delete_customer(customer_id: UUID):
