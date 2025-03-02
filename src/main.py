@@ -74,9 +74,8 @@ def delete_customer(customer_id: UUID):
     conn = db_connect()
     cursor = conn.cursor(dictionary=True)
     try:
-        cursor.execute("SELECT * FROM customers")
-        customers = cursor.fetchall()
+        cursor.execute("delete FROM customers where id = %s", (str(customer_id),))
+        conn.commit()
     except Exception as e:
         return {"error": str(e)}
-    return customers
-
+    return {"message": "Customer deleted"}
