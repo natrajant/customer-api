@@ -1,4 +1,6 @@
 from fastapi import FastAPI
+from src.db import db_connect
+
 
 app = FastAPI()
 
@@ -9,7 +11,11 @@ def index():
 
 @app.get("/api/v1/customers")
 def get_customers():
-    pass
+    conn = db_connect()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM customers")
+    customers = cursor.fetchall()
+    return customers
 
 @app.get("/api/v1/customers/{customer_id}")
 def get_customer(customer_id: int):
