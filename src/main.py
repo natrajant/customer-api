@@ -12,7 +12,7 @@ def index():
 @app.get("/api/v1/customers")
 def get_customers():
     conn = db_connect()
-    cursor = conn.cursor()
+    cursor = conn.cursor(dictionary=True)
     cursor.execute("SELECT * FROM customers")
     customers = cursor.fetchall()
     return customers
