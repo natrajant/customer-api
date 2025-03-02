@@ -7,3 +7,9 @@ class Customer(SQLModel):
     last_name: str
     phone: str
     email: str
+
+class CustomerPatchModel(Customer):
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    phone: Optional[str] = None
+    email: Optional[str] = None
