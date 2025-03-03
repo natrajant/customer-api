@@ -11,7 +11,7 @@ app = FastAPI()
 
 @app.get("/api/v1")
 def index():
-    return {"message": "Customer API"}
+    return {"message": "Customers API"}
 
 
 @app.get("/api/v1/customers")
@@ -45,16 +45,16 @@ def get_customer(customer_id: UUID):
 @app.post("/api/v1/customers")
 def create_customer(customer: Customer):
     logger.info(f"POST /api/v1/customers")
-    
+    customer_id = str(uuid.uuid4())
     try:
         conn = db_connect()
         cursor = conn.cursor(dictionary=True)
-        cursor.execute("insert into customers (id, first_name, middle_name, last_name, phone, email) values (%s, %s, %s, %s, %s, %s)", (str(uuid.uuid4()), customer.first_name, customer.middle_name, customer.last_name, customer.phone, customer.email))
+        cursor.execute("insert into customers (id, first_name, middle_name, last_name, phone, email) values (%s, %s, %s, %s, %s, %s)", (customer_id, customer.first_name, customer.middle_name, customer.last_name, customer.phone, customer.email))
         conn.commit()
     except Exception as e:
         logger.error(f"Error: {str(e)}")  
         return {"error": str(e)}
-    return {"message": "Customer created"}    
+    return {"message": f"Customer created", "id": customer_id}     
 
 @app.put("/api/v1/customers/{customer_id}")
 def update_customer(customer_id: UUID, customer: Customer):
