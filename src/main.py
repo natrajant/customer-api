@@ -19,6 +19,7 @@ def get_customers():
     logger.info("GET /api/v1/customers")
     
     try:
+        # Select all customers
         conn = db_connect()
         cursor = conn.cursor(dictionary=True)
         cursor.execute("SELECT * FROM customers")
@@ -33,6 +34,7 @@ def get_customer(customer_id: UUID):
     logger.info(f"GET /api/v1/customers/{customer_id}")
     
     try:
+        # Select customer by id
         conn = db_connect()
         cursor = conn.cursor(dictionary=True)
         cursor.execute("SELECT * FROM customers where id = %s", (str(customer_id),))
@@ -47,6 +49,7 @@ def create_customer(customer: Customer):
     logger.info(f"POST /api/v1/customers")
     customer_id = str(uuid.uuid4())
     try:
+        # Create new customer
         conn = db_connect()
         cursor = conn.cursor(dictionary=True)
         cursor.execute("insert into customers (id, first_name, middle_name, last_name, phone, email) values (%s, %s, %s, %s, %s, %s)", (customer_id, customer.first_name, customer.middle_name, customer.last_name, customer.phone, customer.email))
@@ -60,10 +63,12 @@ def create_customer(customer: Customer):
 def update_customer(customer_id: UUID, customer: Customer):
     logger.info(f"PUT /api/v1/customers/{customer_id}")
     try:
+        # Check if customer exists first
         if not get_customer(customer_id):
             logger.error(f"Error: Customer not found")  
             raise HTTPException(status_code=404, detail="Customer not found")
         
+        # Update entire customer object
         conn = db_connect()
         cursor = conn.cursor(dictionary=True)
         cursor.execute("UPDATE customers SET first_name = %s, middle_name = %s, last_name = %s, email = %s, phone = %s WHERE id = %s", (customer.first_name, customer.middle_name, customer.last_name, customer.email, customer.phone, str(customer_id)))
@@ -77,6 +82,7 @@ def update_customer(customer_id: UUID, customer: Customer):
 def patch_customer(customer_id: UUID, customer: CustomerPatchModel):
     logger.info(f"PATCH /api/v1/customers/{customer_id}")
     try:
+        # Check if customer exists first
         if not get_customer(customer_id):
             logger.error(f"Error: Customer not found")  
             raise HTTPException(status_code=404, detail="Customer not found")
@@ -85,6 +91,7 @@ def patch_customer(customer_id: UUID, customer: CustomerPatchModel):
         cursor = conn.cursor(dictionary=True)
         # cursor.execute("UPDATE customers SET first_name = %s, middle_name = %s, last_name = %s, email = %s, phone = %s WHERE id = %s", (customer.first_name, customer.middle_name, customer.last_name, customer.email, customer.phone, str(customer_id)))
         if customer.dict(exclude_unset=True).items():
+            # Update only fields provided in payload
             sql = "UPDATE customers SET "
             fields = []
             for key, value in customer.dict(exclude_unset=True).items():
@@ -103,16 +110,28 @@ def patch_customer(customer_id: UUID, customer: CustomerPatchModel):
 def delete_customer(customer_id: UUID):
     logger.info(f"DELETE /api/v1/customers/{customer_id}")
     try:
+        # Check if customer exists first
         if not get_customer(customer_id):
             logger.error(f"Error: Customer not found")  
             raise HTTPException(status_code=404, detail="Customer not found")
         
         conn = db_connect()
         cursor = conn.cursor(dictionary=True)
-
+        # Delete customer by id
         cursor.execute("delete FROM customers where id = %s", (str(customer_id),))
         conn.commit()
     except Exception as e:
         logger.error(f"Error: {str(e)}")  
         return {"error": str(e)}
     return {"message": "Customer deleted"}
+
+
+"""
+Improvments:
+- Implement class based views, routing
+- Implement middleware for logging to splunk, newrelic etc. for observability
+- Implement specific exception handling for http error codes and monitoring errors/performance
+- Implement request input validation
+- Implement authentication, authorization
+- Implement rate limiting
+"""
