@@ -19,6 +19,11 @@ services:
       - 8080:80
     environment:
       - PMA_ARBITRARY=1
+    
+  api:
+    build: .
+    ports:
+      - "8000:8000"
 
 volumes:
   db_data:
